@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Imagicle print2fax
+Copyright (C) 2021 Lorenzo Monti
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<WixLocalization Culture="it-it" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+  <String Id="Language">1040</String>
+  <String Id="ApplicationName">Imagicle print2fax</String>
+  <String Id="NewerInstalled">Una nuova versione di [ProductName] è già installata.</String>
+  <String Id="x64VersionRequired">È necessario installare la versione a 64 bit di questo prodotto su Windows a 64 bit.</String>
+  <String Id="x86VersionRequired">È necessario installare la versione a 32 bit di questo prodotto su Windows a 32 bit.</String>
+
+  <String Id="ConfigDlg_Title">Installazione di [ProductName]</String>
+  <String Id="ConfigDlgTitle">{\WixUI_Font_Title}Configurazione</String>
+  <String Id="ConfigDlgDescription">Inserire i parametri globali. Ogni utente può personalizzarli.</String>
+  <String Id="ConfigDlgBannerBitmap">WixUI_Bmp_Banner</String>
+  <String Id="ConfigDlgServerLabel">FQDN o indirizzo IP del server Imagicle:</String>
+  <!--
+  <String Id="ConfigDlgUsernameLabel">Nome utente:</String>
+  <String Id="ConfigDlgPasswordLabel">Password:</String>
+  -->
+  <String Id="ConfigDlgUseSSLCheckBox">Usa connessione sicura (https)</String>
+  <String Id="ConfigDlgSkipCertificateCheckCheckBox">Ignora i controlli di validità del certificato del server</String>
+</WixLocalization>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Imagicle print2fax
+Copyright (C) 2021 Lorenzo Monti
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include defines.wxi ?>
+  
+  <Product Id="E0893BCC-5935-4B09-8D59-AC15120F28C2" Name="!(loc.ApplicationName)" Language="!(loc.Language)" Codepage="UTF-8" Version="$(var.VersionNumber)" Manufacturer="Imagicle Spa" UpgradeCode="E295AFB0-2424-4BD6-957F-B8F45A342926">
+    <Package InstallerVersion="301" Compressed="yes" InstallScope="perMachine" Comments="Copyright © 2021 Lorenzo Monti" />
+
+    <MajorUpgrade DowngradeErrorMessage="!(loc.NewerInstalled)" />
+    <MediaTemplate EmbedCab="yes" />
+
+    <?if $(var.Platform)=x64 ?>
+      <Condition Message="!(loc.x86VersionRequired)">VersionNT64</Condition>
+    <?endif?>
+
+    <?if $(var.Platform)=x86 ?>
+      <Condition Message="!(loc.x64VersionRequired)">NOT VersionNT64</Condition>
+    <?endif?>
+
+    <?if $(var.Platform)=x64 ?>
+      <Binary Id="wfica" SourceFile="..\x64\Release\wfica.dll" />
+    <?else ?>
+      <Binary Id="wfica" SourceFile="..\Win32\Release\wfica.dll" />
+    <?endif ?>
+
+    <Icon Id="wfigui_Icon.ico" SourceFile="..\..\..\wfigui\wfigui_Icon.ico" />
+
+    <Property Id="ARPPRODUCTICON" Value="wfigui_Icon.ico" />
+    <Property Id="ARPHELPLINK" Value="https://www.imagicle.com/" />
+    <Property Id="OVERWRITEINIVALUES" Value="0" />
+
+    <Feature Id="ProductFeature" Title="wfi" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="VCRuntime" />
+      <ComponentGroupRef Id="LocaleComponents" />
+      <ComponentGroupRef Id="SystemComponents" />
+      <?if $(var.Platform)=x64 ?>
+        <ComponentGroupRef Id="Ghostscript_x64" />
+      <?else ?>
+        <ComponentGroupRef Id="Ghostscript_x86" />
+      <?endif ?>
+    </Feature>
+    
+    <InstallExecuteSequence>
+      <Custom Action="RemovePrinter" After="InstallInitialize">(REMOVE="ALL" OR REINSTALL)</Custom>
+      <Custom Action="WriteIni" Before="AddPrinter">NOT Installed</Custom>
+      <Custom Action="AddPrinter" Before="InstallFinalize">(NOT Installed OR UPGRADINGPRODUCTCODE OR REINSTALL)</Custom>
+    </InstallExecuteSequence>
+    
+    <InstallUISequence>
+      <Custom Action="ReadIni" After="CostFinalize">NOT Installed AND OVERWRITEINIVALUES=0</Custom>
+    </InstallUISequence>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <WixVariable Id="WixUILicenseRtf" Value="gpl-3.0.rtf" />
+    <WixVariable Id="WixUIDialogBmp" Value="setup.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="setup-top.bmp" />
+
+    <Property Id="INI_SERVER" Secure="yes" />
+    <Property Id="INI_USESSL" Secure="yes" />
+    <Property Id="INI_SKIPCERTIFICATECHECK" Secure="yes" />
+    <!--
+    <Property Id="INI_USERNAME" Secure="yes" />
+    <Property Id="INI_PASSWORD" Secure="yes" />
+    -->
+    
+    <UIRef Id="Custom_InstallDir" />
+  </Product>
+
+  <Fragment>
+    <Property Id="RemovePrinter" Hidden="yes" />
+    <Property Id="AddPrinter" Hidden="yes" />
+
+    <SetProperty Id="RemovePrinter" Value="&quot;[#PRINTERUTIL]&quot; uninstall" Before="RemovePrinter" Sequence="execute" />
+    <SetProperty Id="AddPrinter" Value="&quot;[#PRINTERUTIL]&quot; install quiet" Before="AddPrinter" Sequence="execute" />
+
+    <CustomAction Id="RemovePrinter" BinaryKey="WixCA" DllEntry="WixQuietExec" Execute="deferred" Impersonate="no" Return="ignore" />
+    <CustomAction Id="AddPrinter" BinaryKey="WixCA" DllEntry="WixQuietExec" Execute="deferred" Impersonate="no" Return="ignore" />
+    <CustomAction Id="ReadIni" BinaryKey="wfica" DllEntry="ReadIni" Return="ignore" />
+    <CustomAction Id="WriteIni" BinaryKey="wfica" DllEntry="WriteIni" Return="ignore" />
+  </Fragment>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="INSTALLDIR" Name="Imagicle print2fax">
+          <Directory Id="BINDIR" Name="bin" />
+          
+          <Directory Id="LOCALEDIR" Name="locale" />
+          
+          <Directory Id="GSDIR" Name="gs">
+            <?if $(var.Platform)=x64 ?>
+              <Directory Id="GSx64" Name="x64" />
+            <?else ?>
+              <Directory Id="GSx86" Name="x86" />
+            <?endif ?>
+          </Directory>
+        </Directory>
+      </Directory>
+      
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="LinksDir" Name="!(loc.ApplicationName)" />
+      </Directory>
+      
+      <Directory Id="$(var.PlatformSystemFolder)" />
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="BINDIR">
+      <Component Id="CMP_wfigui_exe" Guid="{7A5828BD-6E45-4AF0-A3A0-1D1FD6A28A1E}" Win64="no">
+        <File Id="WFIGUIEXE" Source="..\..\..\wfigui\Release\wfigui.exe" KeyPath="yes" />
+        <Shortcut Id="WFIGUILNK" Advertise="yes" Directory="LinksDir" Name="Imagicle print2fax GUI" WorkingDirectory="BINDIR" />
+        <RemoveFolder Id="CLN_LinksDir" Directory="LinksDir" On="uninstall"/>
+      </Component>
+      <Component Id="CMP_icudt68_dll" Guid="{6B9B2A4A-9083-4E6C-BB08-7C02CB84A327}" Win64="no">
+        <File Id="ICUDT68DLL" Source="..\..\..\wfigui\Release\icudt68.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_icuuc68_dll" Guid="{48ADF1FA-C477-460D-B64E-9AE6D7B94663}" Win64="no">
+        <File Id="ICUUC68DLL" Source="..\..\..\wfigui\Release\icuuc68.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_libmagic_dll" Guid="{AC22265F-23F1-4915-82CF-C47E67DF81BA}" Win64="no">
+        <File Id="LIBMAGICDLL" Source="..\..\..\wfigui\Release\libmagic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_magic_mgc" Guid="{43E053C2-DA0F-4E1A-8B20-F5DA191BEEFD}" Win64="no">
+        <File Id="MAGICMGC" Source="..\..\..\wfigui\Release\magic.mgc" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_printerutil" Guid="{CEA328D1-819E-4DB3-B113-C924414C44A3}" Win64="no">
+        <File Id="PRINTERUTIL" Source="..\..\..\printerutil\Win32\Release\printerutil.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="SystemComponents" Directory="$(var.PlatformSystemFolder)">
+      <Component Id="CMP_wfimon_dll" Guid="{974A58AD-2F73-4F70-B0AD-A01273DD05C9}" Win64="$(var.Win64)" Permanent="no">
+        <File Id="WFIMONDLL" Source="..\..\..\wfimon\$(var.MonitorBitness)\Release\wfimon.dll" KeyPath="yes" />
+        <RegistryKey Root="HKLM" Key="Software\Imagicle print2fax">
+          <RegistryValue Name="WorkingDir" Value="[BINDIR]" Type="string" />
+        </RegistryKey>
+      </Component>
+      <Component Id="CMP_wfimonUI_dll" Guid="{5707EEB8-18AA-4463-95DF-501D46165B69}" Win64="$(var.Win64)" Permanent="no">
+        <File Id="WFIMONUIDLL" Source="..\..\..\wfimon\$(var.MonitorBitness)\Release\wfimonUI.dll" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="LOCALEDIR">
+      <Directory Id="DIR_it" Name="it">
+        <Directory Id="DIR_it_LC_MESSAGES" Name="LC_MESSAGES">
+          <Component Id="CMP_it_delphi_mo" Guid="{CE52CC92-1051-4784-9E21-B190ADB00798}" Win64="no">
+            <File Id="IT_DELPHIMO" Source="..\..\..\wfigui\locale\it\LC_MESSAGES\delphi.mo" KeyPath="yes" />
+          </Component>
+          <Component Id="CMP_it_wfigui_mo" Guid="{CBDF0BEB-E5EC-4CE9-BCC1-A10AE44BF18B}" Win64="no">
+            <File Id="IT_WFIGUIMO" Source="..\..\..\wfigui\locale\it\LC_MESSAGES\wfigui.mo" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="LocaleComponents">
+      <ComponentRef Id="CMP_it_delphi_mo" />
+      <ComponentRef Id="CMP_it_wfigui_mo" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
